@@ -248,16 +248,19 @@
       <p>Ten short lessons, from your first stone to opening wisdom.
       Every lesson is hands-on — you'll learn by playing real moves on a real board.
       ${done ? `<b>${done}/${GoLessons.LESSONS.length} complete.</b>` : 'Begin at the beginning.'}</p>`));
+    const nextUp = GoLessons.LESSONS.find(l => !progress.lessons[l.id]);
     const grid = el('div', 'card-grid');
     GoLessons.LESSONS.forEach((l, i) => {
       const done = progress.lessons[l.id];
-      const c = el('div', 'card' + (done ? ' done' : ''), `
+      const isNext = nextUp && nextUp.id === l.id;
+      const c = el('div', 'card' + (done ? ' done' : '') + (isNext ? ' next-up' : ''), `
         <span class="card-num">${['一','二','三','四','五','六','七','八','九','十'][i]}</span>
         <span class="card-icon">${l.icon}</span>
         <h3>${l.title}</h3>
         <p>${l.subtitle}</p>
         <span class="xp-tag">⚡ ${l.xp} XP</span>
-        ${done ? '<span class="done-mark">✓ complete</span>' : ''}`);
+        ${done ? '<span class="done-mark">✓ complete</span>' : ''}
+        ${isNext ? '<span class="next-tag">▶ continue here</span>' : ''}`);
       c.addEventListener('click', () => switchView('learn', l));
       grid.appendChild(c);
     });
@@ -273,6 +276,8 @@
     let found = new Set();
     let lineIdx = 0;
     let busy = false;
+    // step XP only counts the first time through a lesson
+    const stepXP = (n) => { if (!progress.lessons[lesson.id]) addXP(n, null); };
 
     const layout = el('div', 'activity');
     const boardWrap = el('div', 'board-wrap');
@@ -354,7 +359,7 @@
             if (ch.correct) {
               busy = true;
               Sound.success();
-              addXP(10, 'correct answer');
+              stepXP(10);
               const btn = el('button', 'btn primary',
                 stepIdx === lesson.steps.length - 1 ? 'Finish lesson ✓' : 'Continue →');
               btn.addEventListener('click', advance);
@@ -463,7 +468,7 @@
             busy = true;
             Sound.success();
             sensei(s.success || 'Well done!', 'success');
-            addXP(10, null);
+            stepXP(10);
             showContinue();
           }
         } else {
@@ -482,7 +487,7 @@
           setTimeout(() => {
             Sound.success();
             sensei(s.success, 'success');
-            addXP(15, null);
+            stepXP(15);
             showContinue();
           }, 450);
         } else {
@@ -574,7 +579,7 @@
         board.interactive = false;
         Sound.success();
         sensei(s.success || 'Beautifully done!', 'success');
-        addXP(15, null);
+        stepXP(15);
         showContinue();
       }
     }
@@ -848,6 +853,37 @@
     const resignBtn = el('button', 'btn danger', '🏳 Resign');
     controls.append(passBtn, undoBtn, resignBtn);
 
+    // training wheels: mark every group that stands in atari
+    let atariAlerts = true;
+    const alertBtn = el('button', 'btn subtle', '⚠️ Atari alerts: on');
+    alertBtn.title = 'Highlight groups with only one liberty left';
+    alertBtn.addEventListener('click', () => {
+      atariAlerts = !atariAlerts;
+      alertBtn.textContent = `⚠️ Atari alerts: ${atariAlerts ? 'on' : 'off'}`;
+      refreshAtariMarks();
+    });
+    controls.append(alertBtn);
+
+    function refreshAtariMarks() {
+      if (phase !== 'play') return;
+      const marks = { triangle: [] };
+      if (atariAlerts) {
+        const seen = new Set();
+        for (let i = 0; i < game.board.length; i++) {
+          if (game.board[i] === EMPTY || seen.has(i)) continue;
+          const g = game.groupAt(i);
+          g.stones.forEach(s => seen.add(s));
+          if (g.libs.size === 1) {
+            for (const s of g.stones) {
+              const [x, y] = game.xy(s);
+              marks.triangle.push(coordName(x, y));
+            }
+          }
+        }
+      }
+      board.setMarks(marks);
+    }
+
     passBtn.addEventListener('click', () => {
       if (phase !== 'play' || game.turn !== humanColor) return;
       game.pass();
@@ -859,6 +895,7 @@
     undoBtn.addEventListener('click', () => {
       if (phase !== 'play' || game.turn !== humanColor) return;
       game.undo(); game.undo();
+      refreshAtariMarks();
       board.draw();
       note('Took back your last move.');
       renderStatus();
@@ -939,6 +976,7 @@
         Sound.capture(res.captured.length);
       }
       coach(humanColor, res);
+      refreshAtariMarks();
       renderStatus();
       aiMove();
     }
@@ -963,6 +1001,7 @@
           }
           coach(aiColor, res);
         }
+        refreshAtariMarks();
         board.draw();
         renderStatus();
       }, 420 + Math.random() * 500);
@@ -983,9 +1022,9 @@
         phase = 'play';
         game.over = false; game.passes = 0;
         dead.clear();
-        board.setMarks({});
         controls.innerHTML = '';
-        controls.append(passBtn, undoBtn, resignBtn);
+        controls.append(passBtn, undoBtn, resignBtn, alertBtn);
+        refreshAtariMarks();
         renderStatus();
         if (game.turn !== humanColor) aiMove();
       });

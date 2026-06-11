@@ -143,6 +143,12 @@ main {
   color: var(--green); font-weight: 700; font-size: .9rem;
 }
 .card.done { border-color: rgba(95, 168, 107, .45); }
+.card.next-up { border-color: var(--gold); box-shadow: 0 0 0 1px rgba(217, 154, 43, .25), 0 6px 22px rgba(217, 154, 43, .12); }
+.card .next-tag {
+  position: absolute; bottom: 12px; right: 14px;
+  color: var(--gold-soft); font-weight: 700; font-size: .78rem;
+  letter-spacing: .04em; animation: pulse 2.2s ease-in-out infinite;
+}
 .card .stars { color: var(--gold-soft); letter-spacing: 2px; font-size: .85rem; margin-top: 6px; }
 .card .xp-tag { font-size: .72rem; color: var(--ink-faint); margin-top: 8px; display: block; }
 

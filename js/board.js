@@ -10,6 +10,15 @@
   const E = global.GoEngine;
   const { BLACK, WHITE, EMPTY, LETTERS } = E;
 
+  // roundRect shipped in Safari 16; fall back to a plain rect elsewhere
+  if (global.CanvasRenderingContext2D &&
+      !CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h) {
+      this.rect(x, y, w, h);
+      return this;
+    };
+  }
+
   class BoardView {
     /**
      * @param canvas  <canvas> element
