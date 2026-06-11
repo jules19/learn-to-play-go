@@ -18,6 +18,8 @@ and build an immortal two-eyed one — with Sensei Hoshi 🐢 cheering you on.
 > Liberties → Capturing → Atari → Ladders → Ko → Suicide rule → Two eyes →
 > Territory & komi → Opening wisdom
 
+![The ladder lesson](docs/screenshot-ladder.png)
+
 ### 🧩 The Dojo — 14 graded puzzles
 Classic beginner tsumego, from one-move captures to the snapback, the net
 (geta), double atari, vital points, and a full ladder hunt. Wrong answers are
@@ -80,6 +82,8 @@ E2E browser checks (optional, needs Playwright + a local server on `:8788`):
 
 ```bash
 node test/screenshot.cjs      # renders every view, fails on console errors
+node test/e2e-lesson.cjs      # completes Lesson 3, incl. wrong-move retry
+node test/e2e-advanced.cjs    # full ladder chase, illegal-move flow, badges
 node test/e2e-scoring.cjs     # plays a full game through scoring
 ```
 
