@@ -45,7 +45,10 @@ saved locally in your browser.
 
 ## Running it
 
-Just open `index.html` in any modern browser — or serve the folder:
+**Live site:** once GitHub Pages is switched on (see below), the app is served at
+**https://jules19.github.io/learn-to-play-go/**
+
+Or run it locally — just open `index.html` in any modern browser, or serve the folder:
 
 ```bash
 python3 -m http.server 8000
@@ -53,6 +56,14 @@ python3 -m http.server 8000
 ```
 
 Works offline (the one external request, Google Fonts, degrades gracefully).
+
+### Deployment
+
+Every push runs the full test suite and, if green, publishes the site to the
+`gh-pages` branch (`.github/workflows/deploy-pages.yml`). One-time setup by a
+repo admin: **Settings → Pages → Build and deployment → Source: "Deploy from
+a branch" → Branch: `gh-pages` / `(root)` → Save.** After that, deploys are
+fully automatic.
 
 ## Under the hood
 
