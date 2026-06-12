@@ -9,6 +9,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: pages
@@ -25,7 +27,8 @@ jobs:
       - name: Run unit tests (engine, AI, all lessons & puzzles)
         run: node --test test/*.test.js
 
-  deploy:
+  # Covers Pages configured with Source: "Deploy from a branch" (gh-pages)
+  publish-branch:
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -42,3 +45,25 @@ jobs:
           publish_dir: ./_site
           force_orphan: true
           commit_message: 'Deploy site'
+
+  # Covers Pages configured with Source: "GitHub Actions"
+  deploy-actions:
+    needs: test
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stage site files
+        run: |
+          mkdir _site
+          cp -r index.html css js _site/
+          touch _site/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
